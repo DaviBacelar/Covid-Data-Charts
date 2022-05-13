@@ -5,11 +5,11 @@ import Box from '@mui/material/Box';
 import BarChartComponent from './BarChartComponent';
 import BarChartDataType from './BarChartDataType';
 import BarChartCountryNumber from './BarChartCountryNumber';
-import { rankFiltersInterface } from '../../interfaces/rankFilters';
+import { RankFiltersInterface } from '../../interfaces/RankFiltersInterface';
 
 interface props {
   allCountries: string[]; 
-  filters: rankFiltersInterface;
+  filters: RankFiltersInterface;
   countries: string[];
   values: number[];
   setFiltersHandler: (key: string, value: string) => void;

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { CountryDataInterface } from '../../interfaces/CountryDataInterface';
+import { RankDataInterface } from '../../interfaces/RankDataInterface';
 import jsonData from '../../small-owid-covid-data.json';
-
-type Data = any;
 
 interface countryAndValue {
   name: string;
@@ -10,25 +10,32 @@ interface countryAndValue {
 
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<RankDataInterface | unknown>
 ) {
-  res.status(200).json(getReportData(req.query));
+  try {
+    res.status(200).json(getReportData(req.query as {[key: string]: string}));
+  } catch(error) {
+    res.status(500).json({ error })
+  }
 }
 
-function getReportData({ numCountries, dataType, country }: any) {
+function getReportData({ numCountries, dataType, country }: {[key: string]: string}) {
   const field = getField(dataType);
-  const responseData: any = { ...jsonData };
-  return processReportData(responseData, field, numCountries, country);
+  const dataByCountry = { ...jsonData as { [countryName: string]: CountryDataInterface[] } };
+  return processReportData(dataByCountry, field, numCountries, country);
 }
 
-function processReportData(data: any, field: string, numCountries: string, country: string) {
-  let valuesByCountryArray: any = [];
+function processReportData(dataByCountry: { [countryName: string]: CountryDataInterface[] }, field: keyof CountryDataInterface, numCountries: string, country: string) {
+  let valuesByCountryArray: {
+    name: string;
+    value: number;
+  }[] = [];
   let resultArray = [];
 
-  for(const countryName of Object.keys(data)) {
+  for(const countryName of Object.keys(dataByCountry)) {
     valuesByCountryArray = [...valuesByCountryArray, {
       name: countryName,
-      value: data[countryName][data[countryName].length - 1][field] ?? 0
+      value: dataByCountry[countryName][dataByCountry[countryName].length - 1][field] as number ?? 0
     }];
   }
 
@@ -49,16 +56,12 @@ function processReportData(data: any, field: string, numCountries: string, count
   }
 }
 
-function getField(dataType: string): string {
-  if(dataType === 'confirmedCases') {
-    return 'total_cases';
-  }
-
+function getField(dataType: string): keyof CountryDataInterface {
   if(dataType === 'deathCount') {
     return 'total_deaths';
+  } else {
+    return 'total_cases';
   }
-
-  return '';
 }
 
 function sortResult(a: countryAndValue, b: countryAndValue) {

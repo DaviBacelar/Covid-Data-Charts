@@ -1,40 +1,41 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { CountryDataInterface } from '../../interfaces/CountryDataInterface';
 import jsonData from '../../small-owid-covid-data.json';
 
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<any>
+  res: NextApiResponse<{ dates: string[]; values: number[]; } | unknown>
 ) {
-  res.status(200).json(getReportData(req.query));
+  try {
+    res.status(200).json(getReportData(req.query as {[key: string]: string})); 
+  } catch (error) {
+    res.status(500).json({ error });
+  }
 }
 
-interface query {
-  country?: string;
-  dataType: 'confirmedCases' | 'deathCount';
-  valueType: 'newValues' | 'cumulativeMode';
-}
-
-function getReportData({ country, dataType, valueType }: query | any) {
+function getReportData({ country, dataType, valueType }: {[key: string]: string}) {
   const field = getField(dataType, valueType);
-  const responseData = jsonData[country ?? 'World'];
+  const responseData = (jsonData as { [countryName: string]: CountryDataInterface[] })[country ?? 'World'];
 
   return processReportData(responseData, field);
 }
 
-function processReportData(data: any, field: string) {
-  const allByDate: any = {};
+function processReportData(data: CountryDataInterface[], field: keyof CountryDataInterface) {
+  const allByDate: {
+    [date: string]: number;
+  } = {};
 
   for(const item of data) {
-    allByDate[item.date] = item[field] ?? 0;
+    allByDate[item.date] = item[field] as number ?? 0;
   }
 
   return {
     dates: Object.keys(allByDate),
-    values: Object.values(allByDate)
+    values: Object.values(allByDate) as number[]
   }
 }
 
-function getField(dataType: string, valueType: string): string {
+function getField(dataType: string, valueType: string): keyof CountryDataInterface {
   if(dataType === 'confirmedCases' && valueType === 'newValues') {
     return 'new_cases';
   }

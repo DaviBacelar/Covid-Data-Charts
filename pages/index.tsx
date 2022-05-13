@@ -11,39 +11,23 @@ import SelectCountry from '../components/SelectCountry';
 import Loading from '../components/Loading';
 
 import styles from '../styles/Home.module.css';
-import { reportsFiltersInterface } from '../interfaces/reportsFilters';
-import { reportDataInterface } from '../interfaces/reportsData';
+import { ReportsFiltersInterface } from '../interfaces/ReportsFiltersInterface';
+import { ReportDataInterface } from '../interfaces/ReportDataInterface';
 import RankTab from '../components/RankTab/RankTab';
-import { rankFiltersInterface } from '../interfaces/rankFilters';
-import { rankDataInterface } from '../interfaces/rankData';
+import { RankFiltersInterface } from '../interfaces/RankFiltersInterface';
+import { RankDataInterface } from '../interfaces/RankDataInterface';
+import { DEFAULT_RANK_DATA, DEFAULT_RANK_FILTERS, DEFAULT_REPORT_DATA, DEFAULT_REPORT_FILTERS } from '../utility/globalConstants';
 
-const defaultReportFilters: reportsFiltersInterface = {
-  country: 'World',
-  dataType: 'confirmedCases',
-  valueType: 'newValues'
-};
+interface props {
+  activeDarkMode: (value: boolean) => boolean;
+}
 
-const defaultRankFilters: rankFiltersInterface = {
-  dataType: 'confirmedCases',
-  numCountries: '10'
-};
-
-const defaultReportData: reportDataInterface = {
-  dates: [],
-  values: []
-};
-
-const defaultRankData: rankDataInterface = {
-  countries: [],
-  values: []
-};
-
-const Home: NextPage = ({ activeDarkMode }: any) => {
+const Home: NextPage<props> = ({ activeDarkMode }: props) => {
   const [countries, setCountries] = useState([]);
-  const [reportsData, setReportsData] = useState<reportDataInterface>(defaultReportData);
-  const [reportFilters, setReportFilters] = useState<reportsFiltersInterface>(defaultReportFilters);
-  const [rankData, setRankData] = useState<rankDataInterface>(defaultRankData);
-  const [rankFilters, setRankFilters] = useState<rankFiltersInterface>(defaultRankFilters);
+  const [reportsData, setReportsData] = useState<ReportDataInterface>(DEFAULT_REPORT_DATA);
+  const [reportFilters, setReportFilters] = useState<ReportsFiltersInterface>(DEFAULT_REPORT_FILTERS);
+  const [rankData, setRankData] = useState<RankDataInterface>(DEFAULT_RANK_DATA);
+  const [rankFilters, setRankFilters] = useState<RankFiltersInterface>(DEFAULT_RANK_FILTERS);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [tab, setTab] = useState('reports');
 
@@ -92,11 +76,12 @@ const Home: NextPage = ({ activeDarkMode }: any) => {
 
   const setRankFiltersHandler = (key: string, value: string | number) => setRankFilters({...rankFilters, [key]: value});
 
-  const getUrlWithQuery = (baseEndpoint: string, filters: reportsFiltersInterface | rankFiltersInterface) => {
+  const getUrlWithQuery = (baseEndpoint: string, filters: unknown) => {
+    const selectedFilters = {...filters as { [key: string]: string }};
     let query: string[] = [];
 
-    for(const key of Object.keys(filters)) {
-      query = [...query, `${key}=${filters[key]}`];
+    for(const key of Object.keys(selectedFilters)) {
+      query = [...query, `${key}=${selectedFilters[key]}`];
     }
 
     return `${baseEndpoint}?${query.join('&')}`;

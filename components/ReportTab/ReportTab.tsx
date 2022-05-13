@@ -5,10 +5,10 @@ import Box from '@mui/material/Box';
 import LineChartComponent from './LineChartComponent';
 import LineChartDataType from './LineChartDataType';
 import LineChartDataValue from './LineChartValueType';
-import { reportsFiltersInterface } from '../../interfaces/reportsFilters';
+import { ReportsFiltersInterface } from '../../interfaces/ReportsFiltersInterface';
 
 interface props {
-  filters: reportsFiltersInterface;
+  filters: ReportsFiltersInterface;
   dates: string[];
   values: number[];
   setFiltersHandler: (key: string, value: string) => void;
